@@ -1,4 +1,5 @@
-namespace light_engine
-{
-	void say_hello();
+namespace light_engine {
+
+int check_glfw();
+
 }

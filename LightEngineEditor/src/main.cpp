@@ -6,7 +6,7 @@ int main()
 {
 	std::cout << "Hello from Light Engine Editor" << std::endl;
 
-	light_engine::say_hello();
+	light_engine::check_glfw();
 
 	std::cin.get();
 }
