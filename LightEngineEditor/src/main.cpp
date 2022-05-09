@@ -7,7 +7,7 @@ class EditorApplication final : public light_engine::Application
 public:
     void on_update() override
     {
-        std::cout << "Update tick: " << m_tick++ << '\n';
+        //std::cout << "Update tick: " << m_tick++ << '\n';
     }
 
 private:

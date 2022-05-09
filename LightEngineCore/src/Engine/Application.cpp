@@ -1,68 +1,48 @@
 #include "Engine/Application.h"
 #include "Engine/Log.h"
+#include "Engine/Window.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 namespace light_engine {
 
 Application::Application()
 {
-    LOG_INFO("Welcome to spdlog!");
-    LOG_ERROR("Some error message with arg: {}", 1);
-
-    LOG_WARN("Easy padding in numbers like {:08d}", 12);
-    LOG_CRITICAL("Support for int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}", 42);
-    LOG_INFO("Support for floats {:03.2f}", 1.23456);
-    LOG_INFO("Positional args are {1} {0}..", "too", "supported");
-    LOG_INFO("{:<30}", "left aligned");
+    LOG_INFO("Starting Application");
 }
 
 Application::~Application()
 {
+    LOG_INFO("Closing Application");
 }
 
 int Application::start(int window_width, int window_height, const char * window_name)
 {
-    GLFWwindow * window;
+    m_window = std::make_unique<Window>(window_width, window_height, window_name);
 
-    /* Initialize the library */
-    if (!glfwInit())
-        return -1;
+    m_event_dispatcher.add_event_listener<EventMouseMoved>([](EventMouseMoved & event) {
+        LOG_INFO("(MouseMoved) New mouse position 'x:{0} y:{1}'", event.x, event.y);
+    });
 
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(window_width, window_height, window_name, NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return -1;
-    }
+    m_event_dispatcher.add_event_listener<EventWindowResize>([](EventWindowResize & event) {
+        LOG_INFO("(WindowResize) New window size '{0}x{1}'", event.width, event.height);
+    });
 
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
+    m_event_dispatcher.add_event_listener<EventWindowClose>([this](EventWindowClose & event) {
+        LOG_INFO("(WindowClose) Window closed");
+        m_window_closed = true;
+    });
 
-    /* Initialize GLAD with load function from glfw */
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        LOG_CRITICAL("Failed to initialize GLAD");
-        return -2;
-    }
+    m_window->set_event_callback([this](IEvent & event) {
+        m_event_dispatcher.dispatch(event);
+    });
 
-    glClearColor(1, 0, 0, 0);
-
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window)) {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
-
+    while (!m_window_closed) 
+    {
+        m_window->on_update();
         on_update();
     }
+    m_window = nullptr;
 
-    glfwTerminate();
     return 0;
 }
 
